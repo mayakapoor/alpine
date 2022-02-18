@@ -4,6 +4,50 @@ import asyncio
 import argparse
 import pyshark
 
+def pcapInput():
+    #reading each pcap and calling the pysharkOutput function
+    for i in args.pcap:
+        with open(i, 'r') as f:
+            path = pysharkOutput(f)
+    return path
+
+def extractDataLayer(sourcePcap):
+    pkt = pyshark.FileCapture(sourcePcap)
+    print("Loading PCAP input. This may take some time...")
+    pkt.load_packets()
+    print("Input loaded.")
+    if not os.path.exists(os.getcwd() + "/output"):
+        os.makedirs(os.getcwd() + "/output")
+    path = os.getcwd() + "/output/extractout.txt"
+
+    total = len(pkt)
+
+    for i in range(total):
+        if (hasattr(pkt[i], 'sip')):
+            extractSIP(pkt[i], path)
+        #elif (hasattr(pkt[i], 'http')):
+        #    extractHTTP(pkt[i], path)
+        #elif (hasattr(pkt[i], 'ftp')):
+        #    extractFTP(pkt[i], path)
+        #elif (hasattr(pkt[i], 'smtp')):
+        #    extractSMTP(pkt[i], path)
+        #elif (hasattr(pkt[i], 'pop')):
+        #    extractPOP(pkt[i], path)
+        #elif (hasattr(pkt[i], 'irc')):
+        #    extractIRC(pkt[i], path)
+        #elif (hasattr(pkt[i], 'rtsp')):
+        #    extractRTSP(pkt[i], path)
+        #elif (hasattr(pkt[i], 'xmpp')):
+        #    extractXMPP(pkt[i], path)
+
+    pysharkList = []
+
+    pysharkFile = open(path, "r", encoding="latin-1")
+    for line in pysharkFile:
+        pysharkList.append(line.rstrip())
+    pysharkFile.close()
+    return pysharkList
+
 def writeToFile(path, line):
     f = open(path, 'a+')
     f.write(line + '\n')
