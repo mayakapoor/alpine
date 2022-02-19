@@ -4,13 +4,8 @@ import asyncio
 import argparse
 import pyshark
 
-def pcapInput():
-    #reading each pcap and calling the pysharkOutput function
-    for i in args.pcap:
-        with open(i, 'r') as f:
-            path = pysharkOutput(f)
-    return path
 
+# extracts the data layers from a given pcap and puts their string payloads into files
 def extractDataLayer(sourcePcap):
     pkt = pyshark.FileCapture(sourcePcap)
     print("Loading PCAP input. This may take some time...")
@@ -18,35 +13,58 @@ def extractDataLayer(sourcePcap):
     print("Input loaded.")
     if not os.path.exists(os.getcwd() + "/output"):
         os.makedirs(os.getcwd() + "/output")
-    path = os.getcwd() + "/output/extractout.txt"
+
+    sip_path = os.getcwd() + "/output/sip.txt"
+    http_path = os.getcwd() + "/output/http.txt"
+    ftp_path = os.getcwd() + "/output/ftp.txt"
+    smtp_path = os.getcwd() + "/output/smtp.txt"
 
     total = len(pkt)
 
-    for i in range(total):
+    for i in train_range:
         if (hasattr(pkt[i], 'sip')):
-            extractSIP(pkt[i], path)
-        #elif (hasattr(pkt[i], 'http')):
-        #    extractHTTP(pkt[i], path)
-        #elif (hasattr(pkt[i], 'ftp')):
-        #    extractFTP(pkt[i], path)
-        #elif (hasattr(pkt[i], 'smtp')):
-        #    extractSMTP(pkt[i], path)
-        #elif (hasattr(pkt[i], 'pop')):
-        #    extractPOP(pkt[i], path)
-        #elif (hasattr(pkt[i], 'irc')):
-        #    extractIRC(pkt[i], path)
-        #elif (hasattr(pkt[i], 'rtsp')):
-        #    extractRTSP(pkt[i], path)
-        #elif (hasattr(pkt[i], 'xmpp')):
-        #    extractXMPP(pkt[i], path)
+            extractSIP(pkt[i], sip_path)
+        elif (hasattr(pkt[i], 'http')):
+            extractHTTP(pkt[i], http_path)
+        elif (hasattr(pkt[i], 'ftp')):
+            extractFTP(pkt[i], ftp_path)
+        elif (hasattr(pkt[i], 'smtp')):
+            extractSMTP(pkt[i], path)
+        elif (hasattr(pkt[i], 'pop')):
+            extractPOP(pkt[i], path)
+        elif (hasattr(pkt[i], 'irc')):
+            extractIRC(pkt[i], path)
+        elif (hasattr(pkt[i], 'rtsp')):
+            extractRTSP(pkt[i], path)
+        elif (hasattr(pkt[i], 'xmpp')):
+            extractXMPP(pkt[i], path)
 
-    pysharkList = []
+    #pysharkFile = open(path, "r", encoding="latin-1")
+    datadict = {}
+    sipList = fileToList(sip_path)
+    datadict["SIP"] = sipList
 
-    pysharkFile = open(path, "r", encoding="latin-1")
-    for line in pysharkFile:
-        pysharkList.append(line.rstrip())
-    pysharkFile.close()
-    return pysharkList
+    httpList = fileToList(http_path)
+    datadict["HTTP"] = httpList
+
+    ftpList = fileToList(ftp_path)
+    datadict["FTP"] = ftpList
+
+    smtpList = fileToList(smtp_path)
+    datadict["SMTP"] = smtpList
+
+    return datadict
+
+def fileToList(path):
+    lst = []
+    try:
+        f = open(path, "r", encoding="latin-1")
+    except:
+        return lst
+    for line in f:
+        lst.append(line.rstrip())
+    f.close()
+    return lst
 
 def writeToFile(path, line):
     f = open(path, 'a+')

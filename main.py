@@ -9,17 +9,20 @@ if __name__ == "__main__":
     forest = Alpine(128)
 
     for f in args.pcap:
-        pysharkList = extractDataLayer(f)
-        shingleBox = []
-        i = 0
-        for line in pysharkList:
-            shingleBox.append(line.split())
-            i = i + 1
-        # TODO: split up the labels and data parsing to proper buckets
-        forest.add_bucket(shingleBox, "null")
+        datadict = extractDataLayer(f)
+        for bucket in datadict:
+            shingleBox = []
+            i = 0
+            for line in datadict[bucket]:
+                shingleBox.append(line.split())
+                i = i + 1
+                if (i >= len(datadict[bucket]) * 0.8):
+                    break
+            forest.add_bucket(shingleBox, bucket)
 
     forest.finalize()
 
-    pysharkList = extractDataLayer(f)
-    for line in pysharkList:
-        print(forest.query(line, 10))
+    datadict = extractDataLayer(f)
+    for bucket in datadict:
+        for line in datadict[bucket]:
+            print(forest.query(line, 10))

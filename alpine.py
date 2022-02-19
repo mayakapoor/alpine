@@ -8,6 +8,7 @@ class Alpine:
         self.my_forest = MinHashLSHForest(num_perm=perms)
         self.my_lookup_table = {}
         self.my_num_perms = perms
+        self.my_curr_index = 0
 
     def add_bucket(self, data, label):
         minhash = []
@@ -18,11 +19,12 @@ class Alpine:
                 m.update(token.encode('utf-8'))
             minhash.append(m)
 
-        for i,m in enumerate(minhash):
+        for m in minhash:
             # add the hash with its index to the forest
-            self.my_forest.add(i,m)
+            self.my_forest.add(self.my_curr_index,m)
             # add the index with label to the lookup table
-            self.my_lookup_table[i] = label
+            self.my_lookup_table[self.my_curr_index] = label
+            self.my_curr_index += 1
 
     def finalize(self):
         self.my_forest.index()
