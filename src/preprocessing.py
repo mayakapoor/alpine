@@ -62,6 +62,10 @@ def extractDataLayer(sourcePcap):
     # STEP 2: parse the strings based on type.
     #         we write these to file for error checking/bookkeeping.
     for i in range(len(pkt)):
+        if (hasattr(pkt[i], 'tcp')):
+            print(pkt[i].tcp.payload)
+        if (hasattr(pkt[i], 'udp')):
+            print(pkt[i].udp.payload)
         if (hasattr(pkt[i], 'sip')):
             extractSIP(pkt[i], sip_paths)
         elif (hasattr(pkt[i], 'http')):
