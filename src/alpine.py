@@ -13,9 +13,9 @@ class Alpine:
     def add_bucket(self, data, label):
         minhash = []
 
-        for line in data:
+        for i, row in data.iterrows():
             m = MinHash(num_perm=self.my_num_perms)
-            for token in line:
+            for token in row.values.tolist():
                 m.update(token.encode('utf-8'))
             minhash.append(m)
 
@@ -29,13 +29,10 @@ class Alpine:
     def finalize(self):
         self.my_forest.index()
 
-    def query(self, item, num_results):
+    def query(self, tokens, num_results):
         m = MinHash(num_perm=self.my_num_perms)
-        lst = []
-        lst.append(item)
-        tokens = item.split()
         for token in tokens:
-            m.update(token.encode('utf-8'))
+            m.update(str(token).encode('utf-8'))
         arr = np.array(self.my_forest.query(m, num_results))
         counts = defaultdict()
         for ret in arr:
