@@ -1,5 +1,5 @@
 from alpine import Alpine
-import time 
+import time
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
@@ -25,16 +25,22 @@ if __name__ == "__main__":
     list_y =[]
     for root,dirs,files in os.walk(path):
         csv_files = glob.glob(os.path.join(root, "*.csv"))
-        for f in csv_files: 
+        for f in csv_files:
             data = pd.read_csv(f, delimiter=",", dtype=str)
-            print(data)
+            data = data.sample(1000, random_state=4, replace=True)
+            #print(data)
             data_X = extract_hash_values(data)
             data_y = data[[args.classType]]
             list_X.append(data_X)
             list_y.append(data_y)
-            
+
     X = pd.concat(list_X, ignore_index=True)
     y = pd.concat(list_y, ignore_index=True)
+    if (args.classType == "application"):
+        y[args.classType] = y[args.classType].replace(["icq", "aim"], "pidgin")
+        y[args.classType] = y[args.classType].replace(["sftp", "ftps"], "ftp")
+    if (args.classType == "traffic_type"):
+        y[args.classType] = y[args.classType].replace(["audio", "video"], "voip")
     print(len(X))
     print(len(y))
 
@@ -83,11 +89,12 @@ if __name__ == "__main__":
     start = time.time()
     throughput_start = time.time()
     for i, row in X_test.iterrows():
-        y_pred.append(forest.query(row.values.tolist(), num_votes)) 
+        y_pred.append(forest.query(row.values.tolist(), num_votes))
         length_per_sec += int(row["length"])
         if (time.time() - throughput_start) > 1:
             throughput.append(length_per_sec)
             throughput_start = time.time()
+            length_per_sec = 0
     end = time.time()
     print("ms per classification: " + str((((end-start)/len(y_test))*1000)))
     print("throughput: " + str(statistics.mean(throughput)))

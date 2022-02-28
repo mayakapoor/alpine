@@ -1,10 +1,10 @@
 from preprocess import *
 import os
+import argparse
 from csv import writer
-from argparse import ArgumentParser
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Process pcap file and integer data.")
+    parser = argparse.ArgumentParser(description="Process pcap file and integer data.")
     parser.add_argument("-pcap", nargs="+", help="The pcap file. Multiple pcaps can be added when separated by a space.")
     parser.add_argument("-application", help ="The application label (ex: Facebook)")
     parser.add_argument("-traffictype", help = "The traffic type label (ex: Chat)")
