@@ -15,4 +15,4 @@ conda activate alpine
 echo $CONDA_DEFAULT_ENV
 
 # Bash command for python script
-python3 main.py -dataFolder ../VPN-Non-VPN/processed -classType application
+python3 main.py -dataFolder ../datasets/processed -classType application

@@ -2,7 +2,7 @@ from alpine import Alpine
 import time
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay, roc_curve, auc
 from argparse import ArgumentParser
 import glob
 import os
@@ -27,6 +27,7 @@ if __name__ == "__main__":
         csv_files = glob.glob(os.path.join(root, "*.csv"))
         for f in csv_files:
             data = pd.read_csv(f, delimiter=",", dtype=str)
+            data.dropna()
             data = data.sample(1000, random_state=4, replace=True)
             #print(data)
             data_X = extract_hash_values(data)
@@ -100,4 +101,27 @@ if __name__ == "__main__":
     print("throughput: " + str(statistics.mean(throughput)))
     print("number of test samples: " + str(len(y_test)))
     print("accuracy: " + str(accuracy_score(y_pred, y_test)))
-    print("accuracy: \n"+ classification_report(y_test, y_pred))
+    cm = classification_report(y_test, y_pred)
+    print("classification report: \n"+ cm)
+    plot = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=cm.classes_)
+    plot.plot()
+   
+    # fpr = dict()
+    # tpr = dict()
+    # roc_auc = dict()
+    # for i in range(n_classes):
+    #     fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_pred[:, i])
+    #     roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # # Plot of a ROC curve for a specific class
+    # for i in range(n_classes):
+    #     plt.figure()
+    #     plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+    #     plt.plot([0, 1], [0, 1], 'k--')
+    #     plt.xlim([0.0, 1.0])
+    #     plt.ylim([0.0, 1.05])
+    #     plt.xlabel('False Positive Rate')
+    #     plt.ylabel('True Positive Rate')
+    #     plt.title('Receiver operating characteristic example')
+    #     plt.legend(loc="lower right")
+    #     plt.show()
