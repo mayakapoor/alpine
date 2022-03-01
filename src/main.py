@@ -2,11 +2,14 @@ from alpine import Alpine
 import time
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay, roc_curve, auc
+from sklearn.metrics import accuracy_score, classification_report,confusion_matrix ,ConfusionMatrixDisplay, cohen_kappa_score
 from argparse import ArgumentParser
+import matplotlib.pyplot as plt
 import glob
 import os
+import seaborn as sns
 import statistics
+from imblearn.under_sampling import RandomUnderSampler
 
 def extract_hash_values(df):
     return df[["src_port","dst_port","t_proto","dsfield","ip_flags","length","d_proto"]]
@@ -27,8 +30,8 @@ if __name__ == "__main__":
         csv_files = glob.glob(os.path.join(root, "*.csv"))
         for f in csv_files:
             data = pd.read_csv(f, delimiter=",", dtype=str)
-            data.dropna()
-            data = data.sample(1000, random_state=4, replace=True)
+            data.dropna(inplace=True)
+            # data = data.sample(100, random_state=4, replace=True)
             #print(data)
             data_X = extract_hash_values(data)
             data_y = data[[args.classType]]
@@ -43,9 +46,18 @@ if __name__ == "__main__":
     if (args.classType == "traffic_type"):
         y[args.classType] = y[args.classType].replace(["audio", "video"], "voip")
     print(len(X))
-    print(len(y))
+    print("Data count after sampling " , len(y))
+    rus = RandomUnderSampler(random_state=888)
+    X, y = rus.fit_resample(X, y)
+    print("Data count after sampling " , len(y))
 
-    #need to do this for all the data, and for each of the three label types
+
+    # fig, ax = plt.subplots(figsize=(12, 12))
+    # sns.countplot(x=args.classType,data = y,ax=ax,palette = 'CMRmap')
+    # plt.show()
+    # plt.savefig('../../images/class_distribution_{}.png'.format(args.classType))
+
+    # need to do this for all the data, and for each of the three label types
     # aim_filename = r"aimchatvpn0.csv"
     # thunderbird_filename = r"thunderbirdemailvpn0.csv"
     # thunderbird = pd.read_csv(thunderbird_filename, delimiter=",", dtype=str)
@@ -68,9 +80,11 @@ if __name__ == "__main__":
     forest = Alpine(128)
 
     print("training phase...")
+    labels = y_train[args.classType].unique()
+    print(labels)
     start = time.time()
 
-    for label in y_train[args.classType].unique():
+    for label in labels:
         curr = X_train.loc[y_train.loc[y_train[args.classType] == label].index.tolist()]
         forest.add_bucket(curr, label)
     # curr = x_train.loc[y_train.loc[y_train['application'] == "aim"].index.tolist()]
@@ -101,27 +115,13 @@ if __name__ == "__main__":
     print("throughput: " + str(statistics.mean(throughput)))
     print("number of test samples: " + str(len(y_test)))
     print("accuracy: " + str(accuracy_score(y_pred, y_test)))
-    cm = classification_report(y_test, y_pred)
-    print("classification report: \n"+ cm)
-    plot = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=cm.classes_)
-    plot.plot()
-   
-    # fpr = dict()
-    # tpr = dict()
-    # roc_auc = dict()
-    # for i in range(n_classes):
-    #     fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_pred[:, i])
-    #     roc_auc[i] = auc(fpr[i], tpr[i])
-
-    # # Plot of a ROC curve for a specific class
-    # for i in range(n_classes):
-    #     plt.figure()
-    #     plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
-    #     plt.plot([0, 1], [0, 1], 'k--')
-    #     plt.xlim([0.0, 1.0])
-    #     plt.ylim([0.0, 1.05])
-    #     plt.xlabel('False Positive Rate')
-    #     plt.ylabel('True Positive Rate')
-    #     plt.title('Receiver operating characteristic example')
-    #     plt.legend(loc="lower right")
-    #     plt.show()
+    print("cohen kappa score: " + str(cohen_kappa_score(y_test, y_pred)))
+    print("classification report: \n"+ classification_report(y_test, y_pred))
+    cm = confusion_matrix(y_test[args.classType].tolist(), y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    fig, ax = plt.subplots(figsize=(15, 15))
+    disp.plot(ax=ax)
+    plt.show()
+    plt.savefig('../../images/confusion_matrix_{}.png'.format(args.classType))
+    
+  

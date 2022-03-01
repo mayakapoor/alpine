@@ -1,0 +1,22 @@
+Data count after sampling  17470665
+Data count after sampling  301355
+training phase...
+['voip' 'filetransfer' 'stream' 'chat' 'email']
+training time in seconds: 413.6649067401886
+testing phase...
+ms per classification: 2.4700271205297972
+throughput: 319850.6902356902
+number of test samples: 120542
+accuracy: 0.8587463290803206
+classification report: 
+              precision    recall  f1-score   support
+
+        chat       0.88      0.86      0.87     24108
+       email       0.92      0.73      0.82     24108
+filetransfer       0.87      0.95      0.91     24109
+      stream       0.98      0.79      0.87     24108
+        voip       0.72      0.96      0.82     24109
+
+    accuracy                           0.86    120542
+   macro avg       0.88      0.86      0.86    120542
+weighted avg       0.88      0.86      0.86    120542
